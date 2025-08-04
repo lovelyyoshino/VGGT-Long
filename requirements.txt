@@ -17,3 +17,5 @@ prettytable
 pytorch-lightning
 pytorch-metric-learning
 torchmetrics
+trimesh>=4.0.0
+einops
