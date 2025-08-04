@@ -25,6 +25,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.output_images/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -197,6 +198,7 @@ __pycache__/
 __pycache__/*
 .vscode/
 .vscode/*
+.pyc
 
 # vggt-long
 /exps/*

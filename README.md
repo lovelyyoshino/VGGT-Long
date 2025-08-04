@@ -14,12 +14,17 @@ This repository contains the source code for our work:
 ![method](./assets/method.png)
 ![details](./assets/details.png)
 
-### **Change Log**
+### **Changelog**
+
+`[02 Aug 2025]` Updated the licensing terms of `VGGT-Long` to reflect the upstream dependency license (See [VGGT](https://github.com/facebookresearch/vggt) for the changes). Please see the [License Section](#license) for full details.
+
+`[30 Jul 2025]` Chunk Align speed up (`0.273 s/iter`$\rightarrow$`0.175 s/iter` on my machine).
+
 `[23 Jul 2025]` Fixed some bugs in `scripts/download_weights.sh`.
 
 `[22 Jul 2025]` Arxiv submitted.
 
-`[15 Jul 2025]` To help you better understand our project, we’ve updated some visualizations.
+`[15 Jul 2025]` To help you better understand our project, we have updated some visualizations.
 
 `[14 Jun 2025]` GitHub code release.
 
@@ -46,7 +51,7 @@ System Environment：
 
 ### 📦 2 - Environment Setup 
 
-> **Note:** This repository contains a significant amount of `C++` code, but our goal is to make it as out-of-the-box usable as possible for researchers, as many deep learning researchers may not be familiar with `C++` compilation. Currently, the code for `VGGT-Long` can run in a **pure Python environment**, which means you can skip all the `C++` compilation steps in the `README`.
+**Note:** This repository contains a significant amount of `C++` code, but our goal is to make it as out-of-the-box usable as possible for researchers, as many deep learning researchers may not be familiar with `C++` compilation. Currently, the code for `VGGT-Long` can run in a **pure Python environment**, which means you can skip all the `C++` compilation steps in the `README`.
 
 #### Step 1: Dependency Installation
 
@@ -89,12 +94,15 @@ We provide a Python-based Sim3 solver, so `VGGT-Long` can run the loop closure c
 python setup.py install
 ```
 
-
-
 #### Step 4 (Optional) : Compile `DBoW` Loop-Closure Detection Module
 
+The VPR Model of `DBoW` is for performing VPR Model inference with CPU-only. You can skip this step.
+
+<details>
+  <summary><strong>See details</a></strong></summary>
 
 Install the `OpenCV C++ API`.
+
 
 ```cmd
 sudo apt-get install -y libopencv-dev
@@ -117,8 +125,9 @@ Install the image retrieval
 pip install ./DPRetrieval
 ```
 
+</details>
 
-### 🚀 3 - Running the code 
+### 🚀 3 - Running the code
 
 
 ```cmd
@@ -135,9 +144,19 @@ python vggt_long.py --image_dir ./path_of_images --config ./configs/base_config.
 
 In long-sequence scenarios, addressing CPU memory and GPU memory limitations has always been a core challenge. VGGT-Long resolves **GPU** memory limitations encountered by VGGT through chunk-based input partitioning. As for **CPU** memory constraints, we achieve lower CPU memory usage by storing intermediate results on the **disk** (the consequences of CPU memory overflow are far more severe than GPU issues - while GPU OOM may simply terminate the program, **CPU OOM can cause complete system freeze**, which we absolutely want to avoid). VGGT-Long automatically retrieves locally stored intermediate results when needed. Upon completion, these temporary files are **automatically deleted** to prevent excessive disk space consumption. This implementation implies two key considerations:
 
-1. During operation, **sufficient disk space** must be reserved (approximately 50GiB for 4500-frame KITTI 00 sequences, or ~5GiB for 300-frame short sequences);
+1. Before running, **sufficient disk space** must be reserved (approximately 50GiB for 4500-frame KITTI 00 sequences, or ~5GiB for 300-frame short sequences);
 
 2. The actual runtime depends on your **disk I/O speed** and **memory-disk bandwidth**, which may vary significantly across different computer systems.
+
+## Datasets
+
+Our test datasets are all sourced from publicly available autonomous driving datasets, and you can download them according to the official instructions.
+
+**Waymo Open Dataset**: [Main page](https://waymo.com/open/), [V1.4.1](https://console.cloud.google.com/storage/browser/waymo_open_dataset_v_1_4_1)
+
+**Virtual KITTI Dataset** (V1.3.1): [Link](https://europe.naverlabs.com/research/computer-vision/proxy-virtual-worlds-vkitti-1/)
+
+**KITTI Dataset Odometry Track**: [Link](https://www.cvlibs.net/datasets/kitti/eval_odometry.php)
 
 ## Acknowledgements
 
@@ -156,8 +175,11 @@ If you find our work helpful, please consider citing:
 }
 ```
 
+## License
 
-## More Exp
+The `VGGT-Long` codebase follows `VGGT`'s license, please refer to `./LICENSE.txt` for applicable terms. For commercial use, please follow the link [VGGT](https://github.com/facebookresearch/vggt) that should utilize the commercial version of the pre-trained weight. [Link of VGGT-1B-Commercial](https://huggingface.co/facebook/VGGT-1B-Commercial)
+
+## More Experiments
 
 ![kitti](./assets/vkitti.png)
 ![waymo1](./assets/waymo-1.png)

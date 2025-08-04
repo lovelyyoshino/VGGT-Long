@@ -406,14 +406,6 @@ class VGGT_Long:
         print("Aligning all the chunks...")
         # 计算相邻块之间的Sim3变换
         for chunk_idx in range(len(self.chunk_indices)-1):
-            print(chunk_idx, chunk_idx+1)
-
-            # 加载第一个块的数据（用于可视化）
-            chunk_data = np.load(os.path.join(self.result_unaligned_dir, f"chunk_{chunk_idx}.npy"), allow_pickle=True).item()
-            
-            points = chunk_data['world_points'].reshape(-1, 3)
-            colors = (chunk_data['images'].transpose(0, 2, 3, 1).reshape(-1, 3) * 255).astype(np.uint8)
-            confs = chunk_data['world_points_conf'].reshape(-1)
 
             print(f"Aligning {chunk_idx} and {chunk_idx+1} (Total {len(self.chunk_indices)-1})")
             # 加载相邻两个块的数据
@@ -617,6 +609,90 @@ class VGGT_Long:
             glb_path = os.path.join(self.output_dir, "vggt_long_result.glb")
         scene.export(glb_path)
         print(f"[GLB导出] 已保存: {glb_path}")
+
+    def export_merged_glb(self, glb_path=None, conf_thres=50.0, filter_by_frames="All", mask_black_bg=False, mask_white_bg=False, show_cam=True, mask_sky=False, prediction_mode="Predicted Pointmap"):
+        """
+        导出合并所有块数据的 glb 3D 模型文件
+        
+        Args:
+            glb_path (str): glb 文件保存路径，默认为 output_dir/vggt_long_merged_result.glb
+            其余参数同 predictions_to_glb
+        """
+        print("[GLB导出] 开始合并所有块数据...")
+        
+        # 检查是否有对齐后的数据
+        aligned_files = []
+        for idx in range(len(self.chunk_indices)):
+            chunk_path = os.path.join(self.result_aligned_dir, f"chunk_{idx}.npy")
+            if os.path.exists(chunk_path):
+                aligned_files.append(chunk_path)
+        
+        if not aligned_files:
+            print("[GLB导出] 未找到任何对齐后的块数据")
+            return
+        
+        print(f"[GLB导出] 找到 {len(aligned_files)} 个对齐后的块文件")
+        
+        # 初始化合并数据结构
+        combined_predictions = {
+            'world_points': [],
+            'world_points_conf': [],
+            'images': [],
+            'extrinsic': [],
+            'intrinsic': [],
+            'depth': []
+        }
+        
+        # 合并所有块的数据
+        for i, chunk_path in enumerate(aligned_files):
+            print(f"[GLB导出] 正在处理块 {i+1}/{len(aligned_files)}: {os.path.basename(chunk_path)}")
+            chunk_data = np.load(chunk_path, allow_pickle=True).item()
+            
+            # 检查数据键是否存在
+            for key in combined_predictions.keys():
+                if key in chunk_data:
+                    if isinstance(chunk_data[key], np.ndarray):
+                        combined_predictions[key].append(chunk_data[key])
+                    else:
+                        print(f"[警告] 块 {i} 中的 {key} 不是numpy数组，跳过")
+                else:
+                    print(f"[警告] 块 {i} 中缺少键: {key}")
+        
+        # 将列表转换为numpy数组
+        for key in combined_predictions.keys():
+            if combined_predictions[key]:
+                try:
+                    combined_predictions[key] = np.concatenate(combined_predictions[key], axis=0)
+                    print(f"[GLB导出] 合并后 {key} 形状: {combined_predictions[key].shape}")
+                except Exception as e:
+                    print(f"[警告] 合并 {key} 时出错: {e}")
+                    # 如果合并失败，使用第一个块的数据
+                    if combined_predictions[key]:
+                        combined_predictions[key] = combined_predictions[key][0]
+            else:
+                print(f"[警告] {key} 数据为空")
+        
+        # 生成 glb scene
+        print("[GLB导出] 生成GLB场景...")
+        scene = predictions_to_glb(
+            combined_predictions,
+            conf_thres=conf_thres,
+            filter_by_frames=filter_by_frames,
+            mask_black_bg=mask_black_bg,
+            mask_white_bg=mask_white_bg,
+            show_cam=show_cam,
+            mask_sky=mask_sky,
+            target_dir=self.output_dir,
+            prediction_mode=prediction_mode
+        )
+        
+        # 保存 glb 文件
+        if glb_path is None:
+            glb_path = os.path.join(self.output_dir, "vggt_long_merged_result.glb")
+        
+        print(f"[GLB导出] 保存GLB文件到: {glb_path}")
+        scene.export(glb_path)
+        print(f"[GLB导出] 合并数据GLB文件已保存: {glb_path}")
 
     
     def run(self):
@@ -858,7 +934,9 @@ if __name__ == '__main__':
         os.makedirs(save_dir)
         print(f'The exp will be saved under dir: {save_dir}')
 
-    # 创建并运行VGGT_Long实例
+    if config['Model']['align_method'] == 'numba':
+        warmup_numba()
+
     vggt_long = VGGT_Long(image_dir, save_dir, config)
     vggt_long.run()
     vggt_long.close()

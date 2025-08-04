@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import trimesh
-import gradio as gr
 import numpy as np
 import matplotlib
 from scipy.spatial.transform import Rotation

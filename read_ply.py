@@ -195,8 +195,8 @@ def print_point_cloud_info(points, colors=None, file_path=""):
 def main():
     parser = argparse.ArgumentParser(description="读取和可视化PLY点云文件")
     parser.add_argument("ply_file", nargs='?', 
-                       default="./exps/._output_images_/2025-07-25-13-22-24/pcd/combined_pcd.ply",
-                       help="PLY文件路径 (默认: ./exps/._output_images_/2025-07-25-13-22-24/pcd/combined_pcd.ply)")
+                       default="./exps/._keyframes_/2025-08-04-11-16-12/pcd/combined_pcd_merged.ply",
+                       help="PLY文件路径 (默认: ./exps/._keyframes_/2025-08-04-09-30-15/pcd/combined_pcd_merged.ply)")
     parser.add_argument("--no-vis", action="store_true", 
                        help="只打印信息，不进行可视化")
     parser.add_argument("--engine", choices=['matplotlib', 'open3d', 'auto'], default='auto',
